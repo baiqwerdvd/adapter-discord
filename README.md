@@ -27,7 +27,7 @@ _✨ Discord 协议适配 ✨_
 
 ### Driver
 
-参考 [driver](https://v2.nonebot.dev/docs/tutorial/configuration#driver) 配置项，添加 `ForwardDriver` 支持。
+参考 [driver](https://nonebot.dev/docs/tutorial/configuration#driver) 配置项，添加 `ForwardDriver` 支持。
 
 如：
 
@@ -46,7 +46,8 @@ DISCORD_BOTS='
     "token": "xxx",
     "intent": {
       "guild_messages": true,
-      "direct_messages": true
+      "direct_messages": true,
+      "message_content": true
     },
     "application_commands": {"*": ["*"]}
   }
@@ -56,6 +57,18 @@ DISCORD_BOTS='
 # application_commands的{"*": ["*"]}代表将全部应用命令注册为全局应用命令
 # {"admin": ["123", "456"]}则代表将admin命令注册为id是123、456服务器的局部命令，其余命令不注册
 ```
+
+> **⚠️ 关于 `message_content` Intent**
+>
+> `message_content` 是 Discord 的**特权 Intent（Privileged Intent）**，默认关闭。
+> 若未开启，Bot **仅在以下场景能收到消息内容**，其余情况 `event.content` 为空：
+> - 消息中 @ 了 Bot
+> - 消息回复了 Bot
+> - 私信（DM）消息
+>
+> 如需正常接收所有频道消息内容，需要：
+> 1. 前往 [Discord Developer Portal](https://discord.com/developers/applications) → 你的应用 → **Bot** 页面，开启 **Message Content Intent**
+> 2. 在配置中将 `message_content` 设为 `true`
 
 ### DISCORD_COMPRESS
 
@@ -141,7 +154,7 @@ async def ready(bot: Bot, event: MessageEvent, msg: Message = CommandArg()):
                   type=EmbedTypes.image,
                   description='nonebot logo',
                   image=EmbedImage(
-                      url='https://v2.nonebot.dev/logo.png'))))
+                      url='https://nonebot.dev/logo.png'))))
     elif msg == 'attachment':
         # 发送一个附件，其中包含来自本地的logo.png图片
         with open('logo.png', 'rb') as f:
@@ -234,6 +247,9 @@ matcher = on_slash_command(
 async def handle_user_add(
     plugin: CommandOption[str], priority: CommandOption[Optional[int]]
 ):
+    # Discord 要求斜杠命令必须在 3 秒内给出首次响应，否则返回 404。
+    # 如果处理逻辑耗时较长（如查询数据库），需要先调用 send_deferred_response()
+    # 将命令转为「延迟响应」模式，获得最多 15 分钟的处理时间。
     await matcher.send_deferred_response()
     await asyncio.sleep(2)
     await matcher.edit_response(f"你添加了插件 {plugin}，优先级 {priority}")
