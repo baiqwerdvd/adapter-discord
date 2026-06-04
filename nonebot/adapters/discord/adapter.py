@@ -11,7 +11,7 @@ from typing_extensions import override
 from nonebot.adapters import Adapter as BaseAdapter, Bot as BaseBot
 
 from nonebot.compat import type_validate_json, type_validate_python
-from nonebot.drivers import URL, Driver, ForwardDriver, Request, WebSocket
+from nonebot.drivers import URL, Driver, ForwardDriver, Request, Timeout, WebSocket
 from nonebot.exception import WebSocketClosed
 from nonebot.plugin import get_plugin_config
 from nonebot.utils import escape_tag
@@ -184,7 +184,11 @@ class Adapter(BaseAdapter, HandleMixin):
             url=ws_url,
             headers=headers,
             params=params,
-            timeout=self.discord_config.discord_api_timeout,
+            timeout=Timeout(
+                connect=self.discord_config.discord_api_timeout,
+                read=None,
+                close=10.0,
+            ),
             proxy=self.discord_config.discord_proxy,
         )
         heartbeat_task: asyncio.Task | None = None
