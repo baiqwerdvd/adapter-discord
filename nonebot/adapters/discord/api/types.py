@@ -846,6 +846,7 @@ class GuildFeature(StrEnum):
     AUDIO_BITRATE_128_KBPS = "AUDIO_BITRATE_128_KBPS"
     PIN_PERMISSION_MIGRATION_COMPLETE = "PIN_PERMISSION_MIGRATION_COMPLETE"
 
+
 class GuildMemberFlags(IntFlag):
     """Guild member flags.
 
